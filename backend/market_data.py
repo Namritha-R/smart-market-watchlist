@@ -5,7 +5,7 @@ MARKET_DATA = {
     "INFY": {
         "name": "Infosys",
         "sector": "IT",
-        "price": 1520.00,
+        "price": 1553.00,
         "previous_close": 1505.00,
         "sector_change": 0.40,
         "volume": 4200000,
@@ -101,6 +101,7 @@ def get_market_data():
 
         result[symbol] = {
             **stock,
+            "symbol": symbol,
             "daily_change": round(daily_change, 2),
             "nifty_change": NIFTY_CHANGE,
             "timestamp": timestamp,

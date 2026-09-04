@@ -1,5 +1,5 @@
 import numpy as np
-
+from historical_data import get_normal_volatility
 
 def calculate_attention(stock):
     """
@@ -15,7 +15,7 @@ def calculate_attention(stock):
 
     # Temporary historical volatility for our simulation.
     # Later this will come from real historical market data.
-    normal_volatility = 1.0
+    normal_volatility = get_normal_volatility(stock["symbol"])
 
     # How unusual today's movement is
     anomaly_score = abs(daily_change) / normal_volatility
