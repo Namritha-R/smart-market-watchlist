@@ -1,12 +1,16 @@
 import numpy as np
 from historical_data import get_normal_volatility
 
-def calculate_attention(stock):
+def calculate_attention(stock, change_percent=None):
     """
     Determine whether a stock's movement deserves attention.
     """
 
-    daily_change = stock["daily_change"]
+    daily_change = (
+    change_percent
+    if change_percent is not None
+    else stock["daily_change"]
+    )
     sector_change = stock["sector_change"]
     nifty_change = stock["nifty_change"]
 
