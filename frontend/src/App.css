@@ -1,10 +1,17 @@
+/* =========================================================
+   APP
+========================================================= */
+
 .app {
   min-height: 100vh;
   background: #ffffff;
   padding-bottom: 70px;
 }
 
-/* ---------------- HEADER ---------------- */
+
+/* =========================================================
+   HEADER
+========================================================= */
 
 .topbar {
   height: 72px;
@@ -68,20 +75,26 @@
   color: #333333;
 }
 
-/* ---------------- MAIN ---------------- */
+
+/* =========================================================
+   MAIN
+========================================================= */
 
 .container {
-  width: 100%;
-  max-width: 1080px;
+  width: calc(100% - 80px);
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 58px 36px;
+  padding: 58px 0;
 }
 
-/* ---------------- HERO ---------------- */
+
+/* =========================================================
+   HERO
+========================================================= */
 
 .hero {
-  padding: 10px 0 60px;
-  max-width: 760px;
+  padding: 10px 0 42px;
+  max-width: 900px;
 }
 
 .eyebrow {
@@ -102,38 +115,90 @@
 }
 
 .subtitle {
-  max-width: 650px;
+  max-width: 720px;
   margin: 20px 0 28px;
   color: #707070;
   font-size: 16px;
   line-height: 1.6;
 }
 
-.check-button {
-  border: 0;
-  border-radius: 7px;
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+button {
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 9px;
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease,
+    opacity 0.15s ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+
+/* Refresh Market */
+
+.check-button,
+.refresh-market-button {
   background: #00b386;
   color: #ffffff;
   padding: 13px 22px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.1s ease;
 }
 
-.check-button:hover {
+.check-button:hover,
+.refresh-market-button:hover {
   background: #009f78;
 }
 
-.check-button:active {
-  transform: translateY(1px);
+
+/* AI Prioritize */
+
+.ai-prioritize-button {
+  background: #171717;
+  color: #ffffff;
+  padding: 13px 20px;
+  margin-left: 8px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
 }
 
-/* ---------------- SECTIONS ---------------- */
+.ai-prioritize-button:hover:not(:disabled) {
+  background: #303030;
+}
+.suggested-action p {
+  margin: 8px 0 0;
+}
+
+
+/* =========================================================
+   SECTIONS
+========================================================= */
 
 .attention-section,
 .watchlist-section,
 .portfolio-section {
+  width: 100%;
   margin-bottom: 58px;
 }
 
@@ -166,22 +231,29 @@
   border-radius: 20px;
   background: #fff1ef;
   color: #e05b4f;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   font-size: 12px;
   font-weight: 700;
 }
 
-/* ---------------- ATTENTION CARD ---------------- */
+
+/* =========================================================
+   ATTENTION CARD
+========================================================= */
 
 .attention-card {
   min-height: 92px;
   padding: 21px 22px;
   border: 1px solid #e9e9e9;
   border-radius: 10px 10px 0 0;
+
   display: flex;
   align-items: center;
+
   background: #ffffff;
   transition: box-shadow 0.2s ease;
 }
@@ -201,9 +273,11 @@
   height: 42px;
   border-radius: 50%;
   background: #f4f4f4;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   color: #4d4d4d;
   font-size: 14px;
   font-weight: 700;
@@ -249,7 +323,10 @@
   line-height: 1;
 }
 
-/* ---------------- REASON ---------------- */
+
+/* =========================================================
+   REASON
+========================================================= */
 
 .reason {
   padding: 16px 22px;
@@ -272,7 +349,10 @@
   line-height: 1.5;
 }
 
-/* ---------------- WATCHLIST ---------------- */
+
+/* =========================================================
+   WATCHLIST
+========================================================= */
 
 .add-button {
   border: 0;
@@ -296,6 +376,7 @@
   min-height: 76px;
   padding: 16px 5px;
   border-bottom: 1px solid #eeeeee;
+
   display: flex;
   align-items: center;
 }
@@ -322,7 +403,14 @@
   color: #00a878;
 }
 
-/* ---------------- PORTFOLIO ---------------- */
+.negative {
+  color: #e05b4f;
+}
+
+
+/* =========================================================
+   PORTFOLIO
+========================================================= */
 
 .portfolio-card {
   overflow: hidden;
@@ -348,9 +436,11 @@
 .portfolio-row {
   padding: 17px 22px;
   border-top: 1px solid #eeeeee;
+
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
   align-items: center;
+
   font-size: 13px;
 }
 
@@ -364,19 +454,19 @@
   font-weight: 600;
 }
 
-/* ---------------- MOBILE NAV ---------------- */
 
-.bottom-nav {
-  display: none;
-}
-/* ---------------- ADD STOCK ---------------- */
+/* =========================================================
+   ADD STOCK
+========================================================= */
 
 .add-stock-panel {
   margin: -6px 0 18px;
   padding: 14px;
+
   border: 1px solid #e9e9e9;
   border-radius: 9px;
   background: #fafafa;
+
   display: flex;
   gap: 10px;
   justify-content: flex-end;
@@ -385,31 +475,33 @@
 .add-stock-panel select {
   min-width: 230px;
   padding: 10px 12px;
+
   border: 1px solid #dddddd;
   border-radius: 6px;
   background: #ffffff;
+
   color: #333333;
   font-size: 13px;
   outline: none;
 }
 
 .add-stock-panel button {
-  border: 0;
   border-radius: 6px;
   padding: 10px 17px;
   background: #00b386;
   color: #ffffff;
   font-size: 13px;
   font-weight: 600;
-  cursor: pointer;
 }
 
-.add-stock-panel button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.add-stock-panel button:hover:not(:disabled) {
+  background: #009f78;
 }
 
-/* ---------------- REMOVE STOCK ---------------- */
+
+/* =========================================================
+   REMOVE STOCK
+========================================================= */
 
 .remove-button {
   margin-left: 18px;
@@ -429,89 +521,12 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
-/* ---------------- RESPONSIVE ---------------- */
 
-@media (max-width: 700px) {
-  .topbar {
-    height: 64px;
-    padding: 0 20px;
-  }
 
-  .topbar nav {
-    display: none;
-  }
+/* =========================================================
+   EMPTY / ERROR STATES
+========================================================= */
 
-  .container {
-    padding: 38px 20px;
-  }
-
-  .hero {
-    padding-bottom: 48px;
-  }
-
-  .hero h1 {
-    font-size: 36px;
-    letter-spacing: -1.5px;
-  }
-
-  .subtitle {
-    font-size: 15px;
-  }
-
-  .attention-card {
-    padding: 17px;
-  }
-
-  .arrow {
-    margin-left: 14px;
-  }
-
-  .portfolio-row {
-    grid-template-columns: 1fr 1fr;
-    gap: 9px;
-  }
-
-  .portfolio-row strong {
-    text-align: left;
-  }
-
-  .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    border-top: 1px solid #eeeeee;
-    background: #ffffff;
-    z-index: 20;
-  }
-
-  .bottom-nav a {
-    color: #777777;
-    font-size: 12px;
-    text-decoration: none;
-  }
-
-  .bottom-nav .active {
-    color: #00a878;
-    font-weight: 600;
-  }
-  .add-stock-panel {
-  justify-content: stretch;
-}
-
-.add-stock-panel select {
-  min-width: 0;
-  flex: 1;
-}
-
-.add-stock-panel button {
-  flex-shrink: 0;
-}
-}
 .empty-state {
   padding: 28px 22px;
   border: 1px solid #eeeeee;
@@ -532,11 +547,17 @@
   background: #fff8f7;
 }
 
+
+/* =========================================================
+   MARKET STATUS
+========================================================= */
+
 .changes-list {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
+
 .market-status {
   margin: -18px 0 24px;
   color: #999999;
@@ -554,4 +575,318 @@
 
 .status-dot.online {
   background: #00b386;
+}
+
+
+/* =========================================================
+   AI PRIORITIZATION
+========================================================= */
+
+.ai-priority-section {
+  width: 100%;
+  margin: 8px 0 58px;
+  padding: 30px;
+
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 16px;
+
+  box-sizing: border-box;
+}
+
+.ai-priority-header {
+  margin-bottom: 24px;
+}
+
+.ai-eyebrow {
+  margin-bottom: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #777777;
+}
+
+.ai-priority-header h2 {
+  margin: 0;
+  color: #171717;
+  font-size: 27px;
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -0.6px;
+}
+
+.ai-priority-header p {
+  margin: 8px 0 0;
+  color: #777777;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ai-priority-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ai-priority-item {
+  padding: 22px;
+  border: 1px solid #e7e7e7;
+  border-radius: 13px;
+  background: #fafafa;
+  box-sizing: border-box;
+}
+
+.ai-priority-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ai-stock-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ai-rank {
+  min-width: 24px;
+  color: #888888;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ai-symbol {
+  color: #171717;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.ai-label {
+  margin-top: 4px;
+  color: #777777;
+  font-size: 12px;
+}
+
+.ai-confidence {
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: #eef8f4;
+  color: #087f5b;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ai-why {
+  margin-top: 20px;
+}
+
+.ai-why strong,
+.ai-evidence strong {
+  color: #252525;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ai-why p {
+  max-width: 1050px;
+  margin: 7px 0 0;
+  color: #444444;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.ai-evidence {
+  margin-top: 17px;
+}
+
+.ai-evidence ul {
+  max-width: 1100px;
+  margin: 7px 0 0;
+  padding-left: 20px;
+}
+
+.ai-evidence li {
+  margin-bottom: 6px;
+  color: #555555;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.ai-action {
+  margin-top: 19px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #f1f1f1;
+}
+
+.ai-action span {
+  display: block;
+  margin-bottom: 5px;
+  color: #777777;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.ai-action strong {
+  color: #222222;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ai-empty {
+  padding: 18px;
+  border-radius: 10px;
+  background: #fafafa;
+  color: #666666;
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   MOBILE NAV
+========================================================= */
+
+.bottom-nav {
+  display: none;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+  .topbar {
+    padding: 0 28px;
+  }
+
+  .topbar nav {
+    margin-left: 40px;
+    gap: 24px;
+  }
+
+  .container {
+    width: calc(100% - 48px);
+  }
+
+  .hero {
+    max-width: 760px;
+  }
+
+  .ai-priority-section {
+    padding: 24px;
+  }
+}
+
+
+@media (max-width: 700px) {
+  .topbar {
+    height: 64px;
+    padding: 0 20px;
+  }
+
+  .topbar nav {
+    display: none;
+  }
+
+  .container {
+    width: calc(100% - 40px);
+    padding: 38px 0;
+  }
+
+  .hero {
+    padding-bottom: 42px;
+  }
+
+  .hero h1 {
+    font-size: 36px;
+    letter-spacing: -1.5px;
+  }
+
+  .subtitle {
+    font-size: 15px;
+  }
+
+  .ai-priority-section {
+    padding: 20px;
+    border-radius: 13px;
+  }
+
+  .ai-priority-header h2 {
+    font-size: 23px;
+  }
+
+  .ai-priority-item {
+    padding: 17px;
+  }
+
+  .ai-priority-top {
+    align-items: flex-start;
+  }
+
+  .ai-confidence {
+    font-size: 11px;
+  }
+
+  .ai-why p {
+    font-size: 13px;
+  }
+
+  .portfolio-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+  }
+
+  .portfolio-row strong {
+    text-align: left;
+  }
+
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+
+    border-top: 1px solid #eeeeee;
+    background: #ffffff;
+    z-index: 20;
+  }
+
+  .bottom-nav a {
+    color: #777777;
+    font-size: 12px;
+    text-decoration: none;
+  }
+
+  .bottom-nav .active {
+    color: #00a878;
+    font-weight: 600;
+  }
+
+  .add-stock-panel {
+    justify-content: stretch;
+  }
+
+  .add-stock-panel select {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .add-stock-panel button {
+    flex-shrink: 0;
+  }
+
+  .ai-prioritize-button {
+    margin-left: 4px;
+  }
 }

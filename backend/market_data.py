@@ -6,7 +6,7 @@ MARKET_DATA = {
     "INFY": {
         "name": "Infosys",
         "sector": "IT",
-        "price": 1800.00,
+        "price": 1505.00,
         "previous_close": 1505.00,
         "sector_change": 0.40,
         "volume": 4200000,
@@ -14,7 +14,7 @@ MARKET_DATA = {
     "TCS": {
         "name": "TCS",
         "sector": "IT",
-        "price": 3540.00,
+        "price": 3510.00,
         "previous_close": 3510.00,
         "sector_change": 0.40,
         "volume": 2800000,
@@ -22,7 +22,7 @@ MARKET_DATA = {
     "RELIANCE": {
         "name": "Reliance Industries",
         "sector": "Energy",
-        "price": 1420.00,
+        "price": 1405.00,
         "previous_close": 1405.00,
         "sector_change": 0.80,
         "volume": 5100000,
@@ -30,7 +30,7 @@ MARKET_DATA = {
     "HDFCBANK": {
         "name": "HDFC Bank",
         "sector": "Banking",
-        "price": 1680.00,
+        "price": 1665.00,
         "previous_close": 1665.00,
         "sector_change": 0.90,
         "volume": 3500000,
@@ -38,7 +38,7 @@ MARKET_DATA = {
     "ICICIBANK": {
         "name": "ICICI Bank",
         "sector": "Banking",
-        "price": 1250.00,
+        "price": 1242.00,
         "previous_close": 1242.00,
         "sector_change": 0.90,
         "volume": 3900000,
@@ -46,7 +46,7 @@ MARKET_DATA = {
     "ITC": {
         "name": "ITC",
         "sector": "FMCG",
-        "price": 520.00,
+        "price": 518.00,
         "previous_close": 518.00,
         "sector_change": 0.20,
         "volume": 6100000,
@@ -54,7 +54,7 @@ MARKET_DATA = {
     "HINDUNILVR": {
         "name": "Hindustan Unilever",
         "sector": "FMCG",
-        "price": 2650.00,
+        "price": 2642.00,
         "previous_close": 2642.00,
         "sector_change": 0.20,
         "volume": 1800000,
@@ -62,7 +62,7 @@ MARKET_DATA = {
     "SUNPHARMA": {
         "name": "Sun Pharma",
         "sector": "Pharma",
-        "price": 1780.00,
+        "price": 1770.00,
         "previous_close": 1770.00,
         "sector_change": 0.30,
         "volume": 2200000,
@@ -70,7 +70,7 @@ MARKET_DATA = {
     "MARUTI": {
         "name": "Maruti Suzuki",
         "sector": "Auto",
-        "price": 12500.00,
+        "price": 12420.00,
         "previous_close": 12420.00,
         "sector_change": 0.50,
         "volume": 900000,
@@ -78,7 +78,7 @@ MARKET_DATA = {
     "BHARTIARTL": {
         "name": "Bharti Airtel",
         "sector": "Telecom",
-        "price": 1920.00,
+        "price": 1905.00,
         "previous_close": 1905.00,
         "sector_change": 0.60,
         "volume": 2500000,
@@ -88,44 +88,49 @@ MARKET_DATA = {
 
 NIFTY_CHANGE = 0.50
 
-SIMULATION_INTERVAL_SECONDS = 60
+SIMULATION_INTERVAL_SECONDS = 15
 
 
 SIMULATION_MOVEMENTS = {
+    # Scenario 0 — Calm market
     0: {
         "INFY": 0.0,
-        "TCS": 0.0,
-        "RELIANCE": 0.0,
-        "HDFCBANK": 0.0,
-        "ICICIBANK": 0.0,
-        "ITC": 0.0,
-        "HINDUNILVR": 0.0,
-        "SUNPHARMA": 0.0,
-        "MARUTI": 0.0,
-        "BHARTIARTL": 0.0,
-    },
-    1: {
-        "INFY": 3.5,
-        "TCS": 0.2,
-        "RELIANCE": 0.3,
-        "HDFCBANK": 0.2,
-        "ICICIBANK": 0.2,
-        "ITC": 0.1,
-        "HINDUNILVR": 0.1,
-        "SUNPHARMA": 0.2,
-        "MARUTI": 0.3,
-        "BHARTIARTL": 0.2,
-    },
-    2: {
-        "INFY": -1.0,
         "TCS": 0.1,
-        "RELIANCE": 0.2,
-        "HDFCBANK": 0.1,
+        "RELIANCE": 0.1,
+        "HDFCBANK": 0.0,
         "ICICIBANK": 0.1,
         "ITC": 0.0,
         "HINDUNILVR": 0.1,
-        "SUNPHARMA": 0.1,
-        "MARUTI": 0.2,
+        "SUNPHARMA": 0.0,
+        "MARUTI": 0.1,
+        "BHARTIARTL": 0.0,
+    },
+
+    # Scenario 1 — Multiple positive company-specific movers
+    1: {
+        "INFY": 3.5,
+        "TCS": 2.8,
+        "RELIANCE": 2.4,
+        "HDFCBANK": 2.1,
+        "SUNPHARMA": 1.9,
+        "ICICIBANK": 0.3,
+        "ITC": 0.2,
+        "HINDUNILVR": 0.1,
+        "MARUTI": 0.3,
+        "BHARTIARTL": 0.2,
+    },
+
+    # Scenario 2 — Multiple negative company-specific movers
+    2: {
+        "INFY": -3.2,
+        "TCS": -2.7,
+        "RELIANCE": -2.4,
+        "HDFCBANK": -2.1,
+        "MARUTI": -1.9,
+        "ICICIBANK": -0.2,
+        "ITC": 0.0,
+        "HINDUNILVR": 0.1,
+        "SUNPHARMA": -0.2,
         "BHARTIARTL": 0.1,
     },
 }
@@ -162,6 +167,7 @@ def get_market_data():
             "daily_change": round(daily_change, 2),
             "nifty_change": NIFTY_CHANGE,
             "timestamp": timestamp,
+            "scenario": scenario,
         }
 
     return result

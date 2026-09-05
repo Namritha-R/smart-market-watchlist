@@ -1,10 +1,11 @@
+# pyrefly: ignore-file
 
 from sqlalchemy.connectors import aioodbc
 import attention_engine
 
 from sqlalchemy.engine import result
 from datetime import datetime
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import insert
@@ -25,8 +26,8 @@ from attention_engine import calculate_attention
 from portfolio_engine import calculate_portfolio_drift
 from thesis_data import get_thesis_data
 from thesis_engine import evaluate_thesis
-
-
+from ai_engine import prioritize_market_changes
+from news_data import get_news
 app = FastAPI(title="Smart Market Watchlist API")
 app.add_middleware(
     CORSMiddleware,
@@ -111,7 +112,7 @@ def add_to_watchlist(
     market_data = get_market_data()
 
     if symbol not in market_data:
-        return {"error": "Stock not found"}
+        raise HTTPException(status_code=404, detail="Stock not found")
 
     existing = (
         db.query(Watchlist)
@@ -123,7 +124,7 @@ def add_to_watchlist(
     )
 
     if existing:
-        return {"message": "Stock already in watchlist"}
+        raise HTTPException(status_code=409, detail="Stock already in watchlist")
 
     watchlist_item = Watchlist(
         user_id=1,
@@ -156,7 +157,7 @@ def remove_from_watchlist(
     )
 
     if not watchlist_item:
-        return {"error": "Stock not in watchlist"}
+        raise HTTPException(status_code=404, detail="Stock not in watchlist")
 
     db.delete(watchlist_item)
 
@@ -238,13 +239,13 @@ def add_portfolio_position(
     market_data = get_market_data()
 
     if symbol not in market_data:
-        return {"error": "Stock not found"}
+        raise HTTPException(status_code=404, detail="Stock not found")
 
     if quantity <= 0:
-        return {"error": "Quantity must be greater than 0"}
+        raise HTTPException(status_code=400, detail="Quantity must be greater than 0")
 
     if target_weight < 0 or target_weight > 100:
-        return {"error": "Target weight must be between 0 and 100"}
+        raise HTTPException(status_code=400, detail="Target weight must be between 0 and 100")
 
     existing = (
         db.query(PortfolioPosition)
@@ -295,7 +296,7 @@ def remove_portfolio_position(
     )
 
     if not position:
-        return {"error": "Position not found"}
+        raise HTTPException(status_code=404, detail="Position not found")
 
     db.delete(position)
     db.commit()
@@ -313,7 +314,7 @@ def save_last_seen(
     market_data = get_market_data()
 
     if symbol not in market_data:
-        return {"error": "Stock not found"}
+        raise HTTPException(status_code=404, detail="Stock not found")
 
     stock = market_data[symbol]
 
@@ -472,7 +473,7 @@ def save_thesis(
     thesis_data = get_thesis_data()
 
     if symbol not in thesis_data:
-        return {"error": "Thesis data not available"}
+        raise HTTPException(status_code=404, detail="Thesis data not available")
 
     current_value = thesis_data[symbol]["growth"]
     thesis_type = "growth"
@@ -525,6 +526,7 @@ def save_thesis(
 
 @app.get("/changes")
 def get_changes(db: Session = Depends(get_db)):
+    # Get ONE market snapshot for this entire request
     market_data = get_market_data()
 
     watchlist = (
@@ -545,6 +547,8 @@ def get_changes(db: Session = Depends(get_db)):
         if symbol not in market_data:
             continue
 
+        stock = market_data[symbol]
+
         last_seen = (
             db.query(LastSeen)
             .filter(
@@ -556,19 +560,17 @@ def get_changes(db: Session = Depends(get_db)):
 
         if not last_seen:
             result.append({
+                "type": "STOCK",
                 "symbol": symbol,
-                "name": market_data[symbol]["name"],
+                "name": stock["name"],
                 "status": "NEW",
                 "reason": "This stock was added to your watchlist after your last check.",
             })
             continue
 
-        stock = market_data[symbol]
-
-        price_change = stock["price"] - last_seen.price
-
         percentage_change = (
-            price_change / last_seen.price
+            (stock["price"] - last_seen.price)
+            / last_seen.price
         ) * 100
 
         attention = calculate_attention(
@@ -581,9 +583,10 @@ def get_changes(db: Session = Depends(get_db)):
                 "type": "STOCK",
                 "symbol": symbol,
                 "name": stock["name"],
-                "previous_price": last_seen.price,
+                "previous_price": round(last_seen.price, 2),
                 "current_price": stock["price"],
                 "change_percent": round(percentage_change, 2),
+                "daily_change": stock["daily_change"],
                 "status": attention["status"],
                 "anomaly_score": attention["anomaly_score"],
                 "reason": attention["reason"],
@@ -595,82 +598,72 @@ def get_changes(db: Session = Depends(get_db)):
     # Portfolio structural changes
     # -------------------------
 
-    snapshots = (
-        db.query(PortfolioSnapshot)
-        .filter(PortfolioSnapshot.user_id == 1)
-        .order_by(PortfolioSnapshot.timestamp.desc())
+    positions = (
+        db.query(PortfolioPosition)
+        .filter(PortfolioPosition.user_id == 1)
         .all()
     )
 
-    # Get the two most recent portfolio snapshot times
-    snapshot_times = sorted(
-        {snapshot.timestamp for snapshot in snapshots},
-        reverse=True,
-    )
-
-    if len(snapshot_times) >= 2:
-
-        current_time = snapshot_times[0]
-        previous_time = snapshot_times[1]
-
-        current_snapshots = {
-            snapshot.symbol: snapshot.actual_weight
-            for snapshot in snapshots
-            if snapshot.timestamp == current_time
-        }
-
-        previous_snapshots = {
-            snapshot.symbol: snapshot.actual_weight
-            for snapshot in snapshots
-            if snapshot.timestamp == previous_time
-        }
-
-        positions = (
-            db.query(PortfolioPosition)
-            .filter(PortfolioPosition.user_id == 1)
-            .all()
-        )
-
-        targets = {
-            position.symbol: position.target_weight
-            for position in positions
-        }
-
-        for symbol, current_weight in current_snapshots.items():
-
-            target_weight = targets.get(symbol)
-
-            if target_weight is None:
+    if positions:
+        portfolio_values = []
+        for position in positions:
+            if position.symbol not in market_data:
                 continue
+            val = position.quantity * market_data[position.symbol]["price"]
+            portfolio_values.append({
+                "symbol": position.symbol,
+                "value": val,
+                "target_weight": position.target_weight,
+            })
 
-            previous_weight = previous_snapshots.get(
-                symbol,
-                current_weight,
+        total_portfolio_val = sum(item["value"] for item in portfolio_values)
+
+        for item in portfolio_values:
+            symbol = item["symbol"]
+            target_weight = item["target_weight"]
+            current_weight = (
+                (item["value"] / total_portfolio_val) * 100
+                if total_portfolio_val
+                else 0
             )
+
+            baseline_snapshot = (
+                db.query(PortfolioSnapshot)
+                .filter(
+                    PortfolioSnapshot.user_id == 1,
+                    PortfolioSnapshot.symbol == symbol,
+                )
+                .order_by(PortfolioSnapshot.timestamp.desc())
+                .first()
+            )
+
+            if baseline_snapshot:
+                previous_weight = baseline_snapshot.actual_weight
+            else:
+                previous_weight = target_weight
 
             previous_drift = previous_weight - target_weight
             current_drift = current_weight - target_weight
-
             drift_change = current_drift - previous_drift
 
             threshold_crossed = (
-                abs(previous_drift) < 5
-                and abs(current_drift) >= 5
+                abs(previous_drift) < 5.0
+                and abs(current_drift) >= 5.0
             )
 
             meaningful_change = (
-                abs(drift_change) >= 2
+                abs(drift_change) >= 2.0
                 or threshold_crossed
+                or (not baseline_snapshot and abs(current_drift) >= 5.0)
             )
 
             if meaningful_change:
-
                 result.append({
                     "type": "PORTFOLIO",
                     "symbol": symbol,
-                    "previous_weight": previous_weight,
-                    "current_weight": current_weight,
-                    "target_weight": target_weight,
+                    "previous_weight": round(previous_weight, 2),
+                    "current_weight": round(current_weight, 2),
+                    "target_weight": round(target_weight, 2),
                     "drift": round(current_drift, 2),
                     "drift_change": round(drift_change, 2),
                     "status": "WORTH_ATTENTION",
@@ -680,7 +673,8 @@ def get_changes(db: Session = Depends(get_db)):
                         f"its target allocation."
                     ),
                 })
-        # -------------------------
+
+    # -------------------------
     # Thesis changes
     # -------------------------
 
@@ -745,3 +739,71 @@ def get_changes(db: Session = Depends(get_db)):
     )
 
     return result
+@app.post("/ai/prioritize")
+async def ai_prioritize(db: Session = Depends(get_db)):
+    changes = get_changes(db)
+
+    if not changes:
+        return {
+            "priorities": [],
+            "message": "No meaningful changes to prioritize."
+        }
+
+    portfolio = get_portfolio(db)
+
+    # Use the user's actual saved theses from DB if present
+    user_theses = (
+        db.query(Thesis)
+        .filter(Thesis.user_id == 1)
+        .all()
+    )
+    current_thesis_data = get_thesis_data()
+    theses = {}
+    for t in user_theses:
+        curr_growth = current_thesis_data.get(t.symbol, {}).get("growth", t.last_value)
+        theses[t.symbol] = {
+            "growth": curr_growth,
+            "threshold": t.threshold,
+            "status": t.last_status,
+        }
+
+    watchlist = (
+        db.query(Watchlist)
+        .filter(Watchlist.user_id == 1)
+        .all()
+    )
+
+    symbols = [item.symbol for item in watchlist]
+    news = get_news(symbols)
+
+    result = await prioritize_market_changes(
+        changes=changes,
+        portfolio=portfolio,
+        theses=theses,
+        news=news,
+    )
+
+    if not result and changes:
+        return {
+            "priorities": [],
+            "message": "AI prioritization is temporarily unavailable. Your changes are shown below.",
+        }
+
+    return {
+        "priorities": result
+    }
+
+@app.get("/news")
+def news(db: Session = Depends(get_db)):
+    watchlist = (
+        db.query(Watchlist)
+        .filter(Watchlist.user_id == 1)
+        .all()
+    )
+
+    symbols = [item.symbol for item in watchlist]
+
+    if not symbols:
+        return []
+
+    return get_news(symbols)

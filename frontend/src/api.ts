@@ -59,3 +59,9 @@ export function saveThesis(symbol: string) {
     method: "POST",
   });
 }
+
+export function prioritizeWithAI() {
+  return request("/ai/prioritize", {
+    method: "POST",
+  });
+}

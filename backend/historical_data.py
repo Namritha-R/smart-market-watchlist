@@ -19,6 +19,7 @@ def get_normal_volatility(symbol):
     returns = HISTORICAL_RETURNS.get(symbol)
 
     if not returns:
-        return None
+        return 1.0
 
-    return round(float(np.std(returns)), 2)
+    vol = round(float(np.std(returns)), 2)
+    return vol if vol > 0 else 1.0

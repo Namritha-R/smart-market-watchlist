@@ -28,15 +28,15 @@ def calculate_attention(
             "anomaly_score": 0,
             "reason": "No meaningful change since your last check.",
         }
-    sector_change = stock["sector_change"]
-    nifty_change = stock["nifty_change"]
+    sector_change = stock.get("sector_change", 0.0)
+    nifty_change = stock.get("nifty_change", 0.0)
 
     # How much the stock moved differently from its sector
     relative_to_sector = daily_change - sector_change
 
     # Temporary historical volatility for our simulation.
     # Later this will come from real historical market data.
-    normal_volatility = get_normal_volatility(stock["symbol"])
+    normal_volatility = get_normal_volatility(stock.get("symbol", "")) or 1.0
 
     # How unusual today's movement is
     anomaly_score = abs(daily_change) / normal_volatility

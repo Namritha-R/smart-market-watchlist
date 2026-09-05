@@ -9,8 +9,17 @@ import {
   checkIn,
   addToWatchlist,
   removeFromWatchlist,
+  prioritizeWithAI,
 } from "./api";
-
+type AIPriority = {
+  symbol: string;
+  priority: number;
+  label: string;
+  why_it_matters: string;
+  evidence: string[];
+  suggested_action: string;
+  confidence: string;
+};
 function App() {
     const [changes, setChanges] = useState<any[]>([]);
     const sessionStarting = useRef(false);
@@ -24,87 +33,130 @@ function App() {
     const [showAddStock, setShowAddStock] = useState(false);
     const [selectedSymbol, setSelectedSymbol] = useState("");
     const [actionLoading, setActionLoading] = useState(false);
+    const [aiResult, setAiResult] = useState<AIPriority[] | null>(null);
+    const [aiMessage, setAiMessage] = useState<string | null>(null);
+    const [aiLoading, setAiLoading] = useState(false);
+    const aiPriorities = aiResult ?? [];
 
     async function loadData() {
-  try {
-    setLoading(true);
-    setError("");
+      try {
+        setLoading(true);
+        setError("");
 
-    const isNewSession =
-      sessionStorage.getItem("market_session_active") !== "true";
+        const [
+          changesData,
+          watchlistData,
+          portfolioData,
+          marketData,
+          healthData,
+        ] = await Promise.all([
+          getChanges(),
+          getWatchlist(),
+          getPortfolio(),
+          getMarket(),
+          getHealth(),
+        ]);
 
-    const [
-      changesData,
-      watchlistData,
-      portfolioData,
-      marketData,
-      healthData,
-    ] = await Promise.all([
-      getChanges(),
-      getWatchlist(),
-      getPortfolio(),
-      getMarket(),
-      getHealth(),
-    ]);
+        setChanges(changesData);
+        setWatchlist(watchlistData);
+        setPortfolio(portfolioData);
+        setMarket(marketData);
+        setBackendConnected(healthData.status === "healthy");
 
-    let finalChanges = changesData;
-
-    if (isNewSession && !sessionStarting.current) {
-      sessionStarting.current = true;
-
-      await checkIn();
-
-      sessionStorage.setItem(
-        "market_session_active",
-        "true"
-      );
-
-      sessionStorage.setItem(
-        "session_changes",
-        JSON.stringify(changesData)
-      );
-    } else if (!isNewSession) {
-      const previousSessionChanges = JSON.parse(
-        sessionStorage.getItem("session_changes") || "[]"
-      );
-
-      const combinedChanges = [
-        ...previousSessionChanges,
-        ...changesData,
-      ];
-
-      finalChanges = combinedChanges.filter(
-        (change, index, array) =>
-          index ===
-          array.findIndex(
-            (item) =>
-              item.type === change.type &&
-              item.symbol === change.symbol &&
-              item.status === change.status
-          )
-      );
-
-      sessionStorage.setItem(
-        "session_changes",
-        JSON.stringify(finalChanges)
-      );
+        // Record check-in once per session so baseline is updated
+        const isNewSession = sessionStorage.getItem("market_session_active") !== "true";
+        if (isNewSession && !sessionStarting.current) {
+          sessionStarting.current = true;
+          sessionStorage.setItem("market_session_active", "true");
+          await checkIn();
+        }
+      } catch (error) {
+        console.error(error);
+        setError("Unable to connect to the market engine.");
+      } finally {
+        setLoading(false);
+      }
     }
 
-    setChanges(finalChanges);
-    setWatchlist(watchlistData);
-    setPortfolio(portfolioData);
-    setMarket(marketData);
-    setBackendConnected(
-      healthData.status === "healthy"
-    );
-  } catch (error) {
-    console.error(error);
-    setError("Unable to connect to the market engine.");
-  } finally {
-    setLoading(false);
-  }
-}
+    // Lightweight refresh — only polls market-driven data every 15s.
+    // Directly uses fresh backend responses without sessionStorage interference.
+    async function refreshData() {
+      try {
+        const [
+          changesData,
+          watchlistData,
+          portfolioData,
+          marketData,
+        ] = await Promise.all([
+          getChanges(),
+          getWatchlist(),
+          getPortfolio(),
+          getMarket(),
+        ]);
 
+        setChanges(changesData);
+        setWatchlist(watchlistData);
+        setPortfolio(portfolioData);
+        setMarket(marketData);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    async function handleRefreshMarket() {
+      try {
+        setLoading(true);
+        await checkIn();
+        const [
+          changesData,
+          watchlistData,
+          portfolioData,
+          marketData,
+        ] = await Promise.all([
+          getChanges(),
+          getWatchlist(),
+          getPortfolio(),
+          getMarket(),
+        ]);
+
+        setChanges(changesData);
+        setWatchlist(watchlistData);
+        setPortfolio(portfolioData);
+        setMarket(marketData);
+        setAiResult(null);
+        setAiMessage(null);
+      } catch (error) {
+        console.error(error);
+        setError("Unable to refresh market data.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    useEffect(() => {
+      loadData();
+
+      const interval = setInterval(refreshData, 15000);
+      return () => clearInterval(interval);
+    }, []);
+    async function handleAIPrioritize() {
+      setAiLoading(true);
+      setAiMessage(null);
+      try {
+        const result = await prioritizeWithAI();
+        if (Array.isArray(result.priorities)) {
+          setAiResult(result.priorities);
+        } else {
+          setAiResult([]);
+          setAiMessage(result.message || "No priorities returned.");
+        }
+      } catch (error) {
+        setAiResult([]);
+        setAiMessage("AI prioritization failed.");
+      } finally {
+        setAiLoading(false);
+      }
+    }
 
     async function handleAddStock() {
       if (!selectedSymbol) return;
@@ -143,9 +195,7 @@ function App() {
       }
     }
 
-    useEffect(() => {
-      loadData();
-    }, []);
+
   return (
     <div className="app">
       <header className="topbar">
@@ -180,12 +230,77 @@ function App() {
           )}
 
           <button
-            className="check-button"
-            onClick={loadData}
+            className="refresh-market-button"
+            onClick={handleRefreshMarket}
             disabled={loading}
           >
             {loading ? "Refreshing..." : "Refresh market"}
+          </button> 
+          <button  className="ai-prioritize-button" onClick={handleAIPrioritize} disabled={aiLoading}>
+            {aiLoading ? "Analyzing..." : "✨ AI Prioritize"}
           </button>
+           {aiResult !== null && (
+  <section className="ai-priority-section">
+    <div className="ai-priority-header">
+      <div>
+        <div className="ai-eyebrow">SMART ATTENTION</div>
+        <h2>What deserves your attention</h2>
+        <p>
+          AI ranked the meaningful changes using your market signals and portfolio context.
+        </p>
+      </div>
+    </div>
+
+    {aiPriorities.length > 0 ? (
+      <div className="ai-priority-list">
+        {aiPriorities.map((item) => (
+          <div className="ai-priority-item" key={item.symbol}>
+            <div className="ai-priority-top">
+              <div className="ai-stock-info">
+                <span className="ai-rank">#{item.priority}</span>
+
+                <div>
+                  <div className="ai-symbol">{item.symbol}</div>
+                  <div className="ai-label">{item.label}</div>
+                </div>
+              </div>
+
+              <span className="ai-confidence">
+                {item.confidence} confidence
+              </span>
+            </div>
+
+            <div className="ai-why">
+              <strong>Why this matters</strong>
+              <p>{item.why_it_matters}</p>
+            </div>
+
+            {item.evidence?.length > 0 && (
+              <div className="ai-evidence">
+                <strong>Evidence</strong>
+
+                <ul>
+                  {item.evidence.map((evidence, index) => (
+                    <li key={index}>{evidence}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="ai-action">
+              <span>Suggested action</span>
+              <p>{item.suggested_action}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="ai-empty">
+        {aiMessage || "No meaningful changes to prioritize."}
+      </div>
+    )}
+  </section>
+)}
         </section>
 
         <section className="attention-section">
@@ -362,7 +477,7 @@ function App() {
                       })}
                     </strong>
 
-                    <span className="positive">
+                    <span className={stock.daily_change >= 0 ? "positive" : "negative"}>
                       {stock.daily_change > 0 ? "+" : ""}
                       {stock.daily_change}%
                     </span>
