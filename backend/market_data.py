@@ -5,7 +5,7 @@ MARKET_DATA = {
     "INFY": {
         "name": "Infosys",
         "sector": "IT",
-        "price": 1580.00,
+        "price": 1800.00,
         "previous_close": 1505.00,
         "sector_change": 0.40,
         "volume": 4200000,

@@ -11,6 +11,13 @@ def calculate_attention(stock, change_percent=None):
     if change_percent is not None
     else stock["daily_change"]
     )
+    if abs(daily_change) < 0.01:
+        return {
+            "status": "NO_CHANGE",
+            "relative_to_sector": round(daily_change - stock["sector_change"], 2),
+            "anomaly_score": 0,
+            "reason": "No meaningful change since your last check.",
+        }
     sector_change = stock["sector_change"]
     nifty_change = stock["nifty_change"]
 
