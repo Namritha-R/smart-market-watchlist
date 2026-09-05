@@ -33,7 +33,7 @@ Meaningful Change Detection
 Explanation
         ↓
 AI Prioritization
-
+```
 
 ### What it detects
 
