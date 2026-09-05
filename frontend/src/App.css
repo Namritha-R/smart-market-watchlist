@@ -1,0 +1,557 @@
+.app {
+  min-height: 100vh;
+  background: #ffffff;
+  padding-bottom: 70px;
+}
+
+/* ---------------- HEADER ---------------- */
+
+.topbar {
+  height: 72px;
+  border-bottom: 1px solid #eeeeee;
+  display: flex;
+  align-items: center;
+  padding: 0 56px;
+  background: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.logo {
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -1.8px;
+  color: #151515;
+}
+
+.logo span {
+  color: #00b386;
+}
+
+.topbar nav {
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  margin-left: 65px;
+  height: 100%;
+}
+
+.topbar nav a {
+  color: #777777;
+  font-size: 15px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.topbar nav a:hover {
+  color: #222222;
+}
+
+.topbar nav .active {
+  color: #00a878;
+  font-weight: 600;
+}
+
+.profile {
+  margin-left: auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #f1f1f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333333;
+}
+
+/* ---------------- MAIN ---------------- */
+
+.container {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 58px 36px;
+}
+
+/* ---------------- HERO ---------------- */
+
+.hero {
+  padding: 10px 0 60px;
+  max-width: 760px;
+}
+
+.eyebrow {
+  margin: 0 0 17px;
+  color: #00a878;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+}
+
+.hero h1 {
+  margin: 0;
+  color: #171717;
+  font-size: 46px;
+  line-height: 1.1;
+  font-weight: 650;
+  letter-spacing: -2.1px;
+}
+
+.subtitle {
+  max-width: 650px;
+  margin: 20px 0 28px;
+  color: #707070;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.check-button {
+  border: 0;
+  border-radius: 7px;
+  background: #00b386;
+  color: #ffffff;
+  padding: 13px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.check-button:hover {
+  background: #009f78;
+}
+
+.check-button:active {
+  transform: translateY(1px);
+}
+
+/* ---------------- SECTIONS ---------------- */
+
+.attention-section,
+.watchlist-section,
+.portfolio-section {
+  margin-bottom: 58px;
+}
+
+.section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.section-header h2 {
+  margin: 0;
+  color: #1b1b1b;
+  font-size: 21px;
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -0.4px;
+}
+
+.section-header p {
+  margin: 7px 0 0;
+  color: #8a8a8a;
+  font-size: 13px;
+}
+
+.count {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 20px;
+  background: #fff1ef;
+  color: #e05b4f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ---------------- ATTENTION CARD ---------------- */
+
+.attention-card {
+  min-height: 92px;
+  padding: 21px 22px;
+  border: 1px solid #e9e9e9;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  transition: box-shadow 0.2s ease;
+}
+
+.attention-card:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+}
+
+.stock-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.stock-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #f4f4f4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4d4d4d;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.stock-left h3 {
+  margin: 0;
+  color: #202020;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.stock-left p {
+  margin: 5px 0 0;
+  color: #888888;
+  font-size: 12px;
+}
+
+.stock-change {
+  margin-left: auto;
+  text-align: right;
+}
+
+.stock-change strong {
+  display: block;
+  color: #00a878;
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.stock-change span {
+  display: block;
+  margin-top: 5px;
+  color: #888888;
+  font-size: 12px;
+}
+
+.arrow {
+  margin-left: 25px;
+  color: #999999;
+  font-size: 26px;
+  line-height: 1;
+}
+
+/* ---------------- REASON ---------------- */
+
+.reason {
+  padding: 16px 22px;
+  border: 1px solid #eeeeee;
+  border-top: 0;
+  border-radius: 0 0 10px 10px;
+  background: #fafafa;
+}
+
+.reason span {
+  color: #555555;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.reason p {
+  margin: 6px 0 0;
+  color: #777777;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ---------------- WATCHLIST ---------------- */
+
+.add-button {
+  border: 0;
+  background: transparent;
+  color: #00a878;
+  padding: 5px 0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-button:hover {
+  color: #008f6b;
+}
+
+.stock-list {
+  border-top: 1px solid #eeeeee;
+}
+
+.stock-row {
+  min-height: 76px;
+  padding: 16px 5px;
+  border-bottom: 1px solid #eeeeee;
+  display: flex;
+  align-items: center;
+}
+
+.price {
+  margin-left: auto;
+  text-align: right;
+}
+
+.price strong {
+  display: block;
+  color: #202020;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.price span {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+}
+
+.positive {
+  color: #00a878;
+}
+
+/* ---------------- PORTFOLIO ---------------- */
+
+.portfolio-card {
+  overflow: hidden;
+  border: 1px solid #e9e9e9;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.portfolio-card > p {
+  margin: 22px 22px 5px;
+  color: #888888;
+  font-size: 12px;
+}
+
+.portfolio-card > h2 {
+  margin: 0 22px 22px;
+  color: #1c1c1c;
+  font-size: 27px;
+  font-weight: 650;
+  letter-spacing: -0.5px;
+}
+
+.portfolio-row {
+  padding: 17px 22px;
+  border-top: 1px solid #eeeeee;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  align-items: center;
+  font-size: 13px;
+}
+
+.portfolio-row span {
+  color: #777777;
+}
+
+.portfolio-row strong {
+  color: #e05b4f;
+  text-align: right;
+  font-weight: 600;
+}
+
+/* ---------------- MOBILE NAV ---------------- */
+
+.bottom-nav {
+  display: none;
+}
+/* ---------------- ADD STOCK ---------------- */
+
+.add-stock-panel {
+  margin: -6px 0 18px;
+  padding: 14px;
+  border: 1px solid #e9e9e9;
+  border-radius: 9px;
+  background: #fafafa;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.add-stock-panel select {
+  min-width: 230px;
+  padding: 10px 12px;
+  border: 1px solid #dddddd;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #333333;
+  font-size: 13px;
+  outline: none;
+}
+
+.add-stock-panel button {
+  border: 0;
+  border-radius: 6px;
+  padding: 10px 17px;
+  background: #00b386;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-stock-panel button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------------- REMOVE STOCK ---------------- */
+
+.remove-button {
+  margin-left: 18px;
+  border: 0;
+  background: transparent;
+  color: #aaaaaa;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.remove-button:hover {
+  color: #555555;
+}
+
+.remove-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+/* ---------------- RESPONSIVE ---------------- */
+
+@media (max-width: 700px) {
+  .topbar {
+    height: 64px;
+    padding: 0 20px;
+  }
+
+  .topbar nav {
+    display: none;
+  }
+
+  .container {
+    padding: 38px 20px;
+  }
+
+  .hero {
+    padding-bottom: 48px;
+  }
+
+  .hero h1 {
+    font-size: 36px;
+    letter-spacing: -1.5px;
+  }
+
+  .subtitle {
+    font-size: 15px;
+  }
+
+  .attention-card {
+    padding: 17px;
+  }
+
+  .arrow {
+    margin-left: 14px;
+  }
+
+  .portfolio-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+  }
+
+  .portfolio-row strong {
+    text-align: left;
+  }
+
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    border-top: 1px solid #eeeeee;
+    background: #ffffff;
+    z-index: 20;
+  }
+
+  .bottom-nav a {
+    color: #777777;
+    font-size: 12px;
+    text-decoration: none;
+  }
+
+  .bottom-nav .active {
+    color: #00a878;
+    font-weight: 600;
+  }
+  .add-stock-panel {
+  justify-content: stretch;
+}
+
+.add-stock-panel select {
+  min-width: 0;
+  flex: 1;
+}
+
+.add-stock-panel button {
+  flex-shrink: 0;
+}
+}
+.empty-state {
+  padding: 28px 22px;
+  border: 1px solid #eeeeee;
+  border-radius: 10px;
+  background: #fafafa;
+  color: #555555;
+  font-size: 14px;
+}
+
+.empty-state p {
+  margin: 7px 0 0;
+  color: #888888;
+  font-size: 13px;
+}
+
+.empty-state.error {
+  color: #d9534f;
+  background: #fff8f7;
+}
+
+.changes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.market-status {
+  margin: -18px 0 24px;
+  color: #999999;
+  font-size: 12px;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #bbbbbb;
+  display: inline-block;
+  margin-right: 7px;
+}
+
+.status-dot.online {
+  background: #00b386;
+}

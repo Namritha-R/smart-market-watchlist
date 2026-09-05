@@ -66,6 +66,7 @@ class PortfolioPosition(Base):
     __table_args__ = (
             UniqueConstraint("user_id", "symbol", name="unique_portfolio_symbol"),
         )
+
 class PortfolioSnapshot(Base):
     __tablename__ = "portfolio_snapshots"
 
@@ -77,4 +78,24 @@ class PortfolioSnapshot(Base):
     actual_weight: Mapped[float] = mapped_column(Float, nullable=False)
     timestamp: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, nullable=False
+    )
+
+class Thesis(Base):
+    __tablename__ = "theses"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"), nullable=False
+    )
+    symbol: Mapped[str] = mapped_column(String(20), nullable=False)
+    thesis_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    threshold: Mapped[float] = mapped_column(Float, nullable=False)
+    last_value: Mapped[float] = mapped_column(Float, nullable=False)
+    last_status: Mapped[str] = mapped_column(String(30), nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, nullable=False
+    )
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "symbol", name="unique_user_thesis"),
     )

@@ -1,8 +1,16 @@
+
+from sqlalchemy.connectors import aioodbc
+import attention_engine
+
+from sqlalchemy.engine import result
 from datetime import datetime
 from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
+from data_quality import is_stale
 from database import get_db, engine
 from models import (
     Base,
@@ -10,13 +18,23 @@ from models import (
     Watchlist,
     PortfolioPosition,
     PortfolioSnapshot,
+    Thesis,
 )
 from market_data import get_market_data
 from attention_engine import calculate_attention
 from portfolio_engine import calculate_portfolio_drift
+from thesis_data import get_thesis_data
+from thesis_engine import evaluate_thesis
+
 
 app = FastAPI(title="Smart Market Watchlist API")
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 Base.metadata.create_all(bind=engine)
 
 
@@ -42,10 +60,14 @@ def market():
     for symbol, stock in market_data.items():
         result[symbol] = {
             **stock,
-            "attention": calculate_attention(stock),
+            "attention": calculate_attention(
+                stock,
+                stale=is_stale(stock["timestamp"]),
+            ),
         }
 
     return result
+
 @app.get("/watchlist")
 def get_watchlist(db: Session = Depends(get_db)):
     watchlist = (
@@ -70,8 +92,10 @@ def get_watchlist(db: Session = Depends(get_db)):
             "sector": stock["sector"],
             "price": stock["price"],
             "daily_change": stock["daily_change"],
-            "attention": calculate_attention(stock),
-            "timestamp": stock["timestamp"],
+            "attention": calculate_attention(
+    stock,
+    stale=is_stale(stock["timestamp"]),
+),
         })
 
     return result
@@ -342,26 +366,22 @@ def check_in(
 
         stock = market_data[symbol]
 
-        last_seen = (
-            db.query(LastSeen)
-            .filter(
-                LastSeen.user_id == 1,
-                LastSeen.symbol == symbol,
-            )
-            .first()
+        stmt = insert(LastSeen).values(
+            user_id=1,
+            symbol=symbol,
+            price=stock["price"],
+            timestamp=stock["timestamp"],
         )
 
-        if last_seen:
-            last_seen.price = stock["price"]
-            last_seen.timestamp = stock["timestamp"]
-        else:
-            last_seen = LastSeen(
-                user_id=1,
-                symbol=symbol,
-                price=stock["price"],
-                timestamp=stock["timestamp"],
-            )
-            db.add(last_seen)
+        stmt = stmt.on_conflict_do_update(
+            constraint="unique_last_seen",
+            set_={
+                "price": stock["price"],
+                "timestamp": stock["timestamp"],
+            },
+        )
+
+        db.execute(stmt)
 
         checked.append(symbol)
 
@@ -406,6 +426,31 @@ def check_in(
         )
 
         db.add(snapshot)
+    # Update thesis state
+    theses = (
+        db.query(Thesis)
+        .filter(Thesis.user_id == 1)
+        .all()
+    )
+
+    current_thesis_data = get_thesis_data()
+
+    for thesis in theses:
+
+        if thesis.symbol not in current_thesis_data:
+            continue
+
+        current_value = current_thesis_data[thesis.symbol]["growth"]
+
+        evaluation = evaluate_thesis(
+            thesis.thesis_type,
+            current_value,
+            thesis.threshold,
+        )
+
+        thesis.last_value = current_value
+        thesis.last_status = evaluation["status"]
+        thesis.timestamp = datetime.utcnow()
 
     db.commit()
 
@@ -417,6 +462,66 @@ def check_in(
         ],
     }
 
+@app.post("/thesis/{symbol}")
+def save_thesis(
+    symbol: str,
+    db: Session = Depends(get_db),
+):
+    symbol = symbol.upper()
+
+    thesis_data = get_thesis_data()
+
+    if symbol not in thesis_data:
+        return {"error": "Thesis data not available"}
+
+    current_value = thesis_data[symbol]["growth"]
+    thesis_type = "growth"
+    threshold = 15.0
+
+    evaluation = evaluate_thesis(
+        thesis_type,
+        current_value,
+        threshold,
+    )
+
+    thesis = (
+        db.query(Thesis)
+        .filter(
+            Thesis.user_id == 1,
+            Thesis.symbol == symbol,
+        )
+        .first()
+    )
+
+    if thesis:
+        thesis.thesis_type = thesis_type
+        thesis.threshold = threshold
+        thesis.last_value = current_value
+        thesis.last_status = evaluation["status"]
+        thesis.timestamp = datetime.utcnow()
+    else:
+        thesis = Thesis(
+            user_id=1,
+            symbol=symbol,
+            thesis_type=thesis_type,
+            threshold=threshold,
+            last_value=current_value,
+            last_status=evaluation["status"],
+        )
+
+        db.add(thesis)
+
+    db.commit()
+
+    return {
+        "symbol": symbol,
+        "thesis_type": thesis_type,
+        "threshold": threshold,
+        "value": current_value,
+        "status": "BASELINE_SAVED",
+        "current_status": evaluation["status"],
+        "reason": "Your thesis baseline has been saved.",
+    }
 
 @app.get("/changes")
 def get_changes(db: Session = Depends(get_db)):
@@ -468,22 +573,23 @@ def get_changes(db: Session = Depends(get_db)):
 
         attention = calculate_attention(
             stock,
-            percentage_change,
+            change_percent=percentage_change,
         )
 
-        result.append({
-            "type": "STOCK",
-            "symbol": symbol,
-            "name": stock["name"],
-            "previous_price": last_seen.price,
-            "current_price": stock["price"],
-            "change_percent": round(percentage_change, 2),
-            "status": attention["status"],
-            "anomaly_score": attention["anomaly_score"],
-            "reason": attention["reason"],
-            "last_seen": last_seen.timestamp,
-            "current_timestamp": stock["timestamp"],
-        })
+        if attention["status"] == "WORTH_ATTENTION":
+            result.append({
+                "type": "STOCK",
+                "symbol": symbol,
+                "name": stock["name"],
+                "previous_price": last_seen.price,
+                "current_price": stock["price"],
+                "change_percent": round(percentage_change, 2),
+                "status": attention["status"],
+                "anomaly_score": attention["anomaly_score"],
+                "reason": attention["reason"],
+                "last_seen": last_seen.timestamp,
+                "current_timestamp": stock["timestamp"],
+            })
 
     # -------------------------
     # Portfolio structural changes
@@ -542,9 +648,22 @@ def get_changes(db: Session = Depends(get_db)):
                 current_weight,
             )
 
-            drift = current_weight - target_weight
+            previous_drift = previous_weight - target_weight
+            current_drift = current_weight - target_weight
 
-            if abs(drift) >= 5:
+            drift_change = current_drift - previous_drift
+
+            threshold_crossed = (
+                abs(previous_drift) < 5
+                and abs(current_drift) >= 5
+            )
+
+            meaningful_change = (
+                abs(drift_change) >= 2
+                or threshold_crossed
+            )
+
+            if meaningful_change:
 
                 result.append({
                     "type": "PORTFOLIO",
@@ -552,14 +671,73 @@ def get_changes(db: Session = Depends(get_db)):
                     "previous_weight": previous_weight,
                     "current_weight": current_weight,
                     "target_weight": target_weight,
-                    "drift": round(drift, 2),
+                    "drift": round(current_drift, 2),
+                    "drift_change": round(drift_change, 2),
                     "status": "WORTH_ATTENTION",
                     "reason": (
-                        f"{symbol} is {abs(drift):.2f} percentage points "
-                        f"{'above' if drift > 0 else 'below'} "
+                        f"{symbol} is now {abs(current_drift):.2f} percentage points "
+                        f"{'above' if current_drift > 0 else 'below'} "
                         f"its target allocation."
                     ),
                 })
+        # -------------------------
+    # Thesis changes
+    # -------------------------
+
+    theses = (
+        db.query(Thesis)
+        .filter(Thesis.user_id == 1)
+        .all()
+    )
+
+    current_thesis_data = get_thesis_data()
+
+    for thesis in theses:
+
+        if thesis.symbol not in current_thesis_data:
+            continue
+
+        current_value = current_thesis_data[thesis.symbol]["growth"]
+
+        evaluation = evaluate_thesis(
+            thesis.thesis_type,
+            current_value,
+            thesis.threshold,
+        )
+
+        if evaluation["status"] != thesis.last_status:
+
+            if (
+                thesis.last_status == "VALID"
+                and evaluation["status"] == "INVALID"
+            ):
+                status = "THESIS_CHANGED"
+                reason = evaluation["reason"]
+
+            elif (
+                thesis.last_status == "INVALID"
+                and evaluation["status"] == "VALID"
+            ):
+                status = "THESIS_RECOVERED"
+                reason = (
+                    f"Growth has recovered to {current_value:.1f}%, "
+                    f"meeting your {thesis.threshold:.1f}% thesis threshold again."
+                )
+
+            else:
+                status = "THESIS_CHANGED"
+                reason = evaluation["reason"]
+
+            result.append({
+                "type": "THESIS",
+                "symbol": thesis.symbol,
+                "thesis_type": thesis.thesis_type,
+                "previous_value": thesis.last_value,
+                "current_value": current_value,
+                "threshold": thesis.threshold,
+                "status": status,
+                "reason": reason,
+            })
 
     result.sort(
         key=lambda item: item.get("anomaly_score", 0),

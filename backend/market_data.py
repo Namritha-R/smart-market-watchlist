@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import time
 
 
 MARKET_DATA = {
@@ -87,21 +88,77 @@ MARKET_DATA = {
 
 NIFTY_CHANGE = 0.50
 
+SIMULATION_INTERVAL_SECONDS = 60
+
+
+SIMULATION_MOVEMENTS = {
+    0: {
+        "INFY": 0.0,
+        "TCS": 0.0,
+        "RELIANCE": 0.0,
+        "HDFCBANK": 0.0,
+        "ICICIBANK": 0.0,
+        "ITC": 0.0,
+        "HINDUNILVR": 0.0,
+        "SUNPHARMA": 0.0,
+        "MARUTI": 0.0,
+        "BHARTIARTL": 0.0,
+    },
+    1: {
+        "INFY": 3.5,
+        "TCS": 0.2,
+        "RELIANCE": 0.3,
+        "HDFCBANK": 0.2,
+        "ICICIBANK": 0.2,
+        "ITC": 0.1,
+        "HINDUNILVR": 0.1,
+        "SUNPHARMA": 0.2,
+        "MARUTI": 0.3,
+        "BHARTIARTL": 0.2,
+    },
+    2: {
+        "INFY": -1.0,
+        "TCS": 0.1,
+        "RELIANCE": 0.2,
+        "HDFCBANK": 0.1,
+        "ICICIBANK": 0.1,
+        "ITC": 0.0,
+        "HINDUNILVR": 0.1,
+        "SUNPHARMA": 0.1,
+        "MARUTI": 0.2,
+        "BHARTIARTL": 0.1,
+    },
+}
+
 
 def get_market_data():
     timestamp = datetime.now(timezone.utc)
 
+    tick = int(time.time() // SIMULATION_INTERVAL_SECONDS)
+
+    scenario = tick % len(SIMULATION_MOVEMENTS)
+
+    movements = SIMULATION_MOVEMENTS[scenario]
+
     result = {}
 
     for symbol, stock in MARKET_DATA.items():
+
+        movement = movements.get(symbol, 0.0)
+
+        simulated_price = (
+            stock["price"] * (1 + movement / 100)
+        )
+
         daily_change = (
-            (stock["price"] - stock["previous_close"])
+            (simulated_price - stock["previous_close"])
             / stock["previous_close"]
         ) * 100
 
         result[symbol] = {
             **stock,
             "symbol": symbol,
+            "price": round(simulated_price, 2),
             "daily_change": round(daily_change, 2),
             "nifty_change": NIFTY_CHANGE,
             "timestamp": timestamp,
